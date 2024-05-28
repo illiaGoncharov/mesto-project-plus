@@ -1,13 +1,24 @@
-import express from 'express';
+import express, { Application } from 'express';
 import mongoose from 'mongoose';
 
+// Получаем значение порта из переменной окружения / используем 3000 по умолчанию
 const { PORT = 3000 } = process.env;
 
-const app = express();
+// Инициализируем экземпляр приложения Express
+const app: Application = express();
 
-mongoose.connect('mongodb://localhost:27017/mestodb');
+// Асинхронная функция для подключения к MongoDB и запуска сервера
+const connect = async () => {
+  try {
+    // Подключаемся к локальной базе данных MongoDB
+    await mongoose.connect('mongodb://localhost:27017/mestodb');
+    app.listen(PORT, () => {
+      console.log(`App listening on port ${PORT}`);
+    });
+  } catch (error) {
+    // Логируем ошибку в случае неудачного подключения
+    console.error(error);
+  }
+};
 
-app.listen(PORT, () => {
-  // eslint-disable-next-line no-console
-  console.log(`App listening on port ${PORT}`);
-});
+connect();
