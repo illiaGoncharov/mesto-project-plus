@@ -1,12 +1,12 @@
+import mongoose from 'mongoose';
 import express, {
   Application,
   json,
   Response,
   NextFunction,
 } from 'express';
-import mongoose from 'mongoose';
 import router from './routes/index';
-import { RequestCustom } from './type';
+import { RequestCustom } from './utils/requestCustom';
 
 // Получаем значение порта из переменной окружения / используем 3000 по умолчанию
 const { PORT = 3000 } = process.env;
