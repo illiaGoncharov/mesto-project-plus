@@ -6,7 +6,8 @@ import {
 } from 'express';
 import userRouter from './users';
 import cardRouter from './cards';
-import Errors from '../errors/errors';
+
+const CustomError = require('../errors/errorHandlerCustom');
 
 const router = Router();
 
@@ -15,7 +16,7 @@ router.use('/cards', cardRouter);
 
 // Мидлвар для обработки ошибки 404
 router.use((req: Request, res: Response, next: NextFunction) => {
-  next(Errors.notFoundError('404'));
+  next(CustomError.NotFoundError('Страница не найдена'));
 });
 
 export default router;

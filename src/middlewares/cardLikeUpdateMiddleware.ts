@@ -7,7 +7,7 @@ import { RequestCustom } from '../utils/requestCustom';
 import HttpStatusCode from '../utils/constants';
 import Card from '../models/card';
 
-const ErrorCustom = require('../utils/errorCustom');
+const ErrorCustom = require('../errors/errorHandlerCustom');
 
 // Middleware для обновления лайков на карточке
 const updateLikeCardMiddleware = async (

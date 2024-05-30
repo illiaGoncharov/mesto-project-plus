@@ -3,7 +3,7 @@ import User from '../models/user';
 import { RequestCustom } from './requestCustom';
 
 // Импортируем модуль с кастомными ошибками
-const ErrorCustom = require('./errorCustom');
+const ErrorCustom = require('../errors/errorHandlerCustom');
 
 // eslint-disable-next-line no-unused-vars
 const userSearch = async (req: RequestCustom, res: Response, next: NextFunction, auth: boolean) => {

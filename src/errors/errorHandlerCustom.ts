@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-import-module-exports
-import HttpStatusCodes from './constants';
+import HttpStatusCodes from '../utils/constants';
 
 // Определяем интерфейс IError + свойство statusCode
 export interface IError extends Error {
@@ -36,4 +36,4 @@ class CustomError extends Error implements IError {
   }
 }
 
-export default CustomError;
+module.exports = CustomError;

@@ -48,6 +48,6 @@
         "no-trailing-spaces": "off",
         "eol-last": "off",
         "no-console": 0,
-        "quotes": ["error", "single", { "avoidEscape": true }],
+        "quotes": ["error", "single"]
     }
 }
