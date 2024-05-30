@@ -11,7 +11,7 @@ import HttpStatusCodes from '../utils/constants';
 import userUpdateMiddleware from '../middlewares/userUpdateMiddleware';
 
 // Импортируем модуль с кастомными ошибками
-const ErrorCustom = require('../utils/errorCustom');
+const ErrorCustom = require('../errors/errorHandlerCustom');
 
 // Получить всех пользователей
 const getUsers = async (req: Request, res: Response, next: NextFunction) => {

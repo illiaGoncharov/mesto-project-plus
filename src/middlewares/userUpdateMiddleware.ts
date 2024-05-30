@@ -7,7 +7,7 @@ import { RequestCustom } from '../utils/requestCustom';
 import HttpStatusCode from '../utils/constants';
 import User from '../models/user';
 
-const CustomError = require('../utils/errorCustom');
+const CustomError = require('../errors/errorHandlerCustom');
 
 // Middleware для обновления данных пользователя
 const updateUserMiddleware = async (

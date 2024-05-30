@@ -9,8 +9,7 @@ import Card from '../models/card';
 import HttpStatusCodes from '../utils/constants';
 import cardLikeUpdateMiddleware from '../middlewares/cardLikeUpdateMiddleware';
 
-// Импортируем модуль с кастомными ошибками
-const ErrorCustom = require('../utils/errorCustom');
+const ErrorCustom = require('../errors/errorHandlerCustom');
 
 // Получение всех карточек
 const getCards = async (req: Request, res: Response, next: NextFunction) => {
