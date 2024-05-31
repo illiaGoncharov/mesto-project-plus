@@ -1,59 +1,88 @@
+import mongoose from 'mongoose';
 import {
   Request,
   Response,
   NextFunction,
 } from 'express';
+import { RequestCustom } from '../utils/requestCustom';
 import Card from '../models/card';
-import Errors from '../errors/errors';
-import { RequestCustom } from '../type';
+import HttpStatusCodes from '../utils/constants';
+import cardLikeUpdateMiddleware from '../middlewares/cardLikeUpdateMiddleware';
+
+const ErrorCustom = require('../errors/errorHandlerCustom');
 
 // Получение всех карточек
 const getCards = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    //  Попытка получить всех карточки
-    const cards = await Card.find({});
+    //  Попытка получить все карточки
+    const cards = await Card.find({}).populate(['owner', 'likes']);
     // Отправка успешного ответа с данными
-    return res.status(200).send({ data: cards });
+    return res.send({ data: cards });
   } catch (error) {
-    // Логирование ошибки на сервере для отладки
-    console.error('Ошибка при получении карточек:', error);
-    // Передача в следующий middleware объекта ошибки
-    return next(Errors.internalError('Произошла неожиданная ошибка!'));
+    return next(error);
   }
 };
 
 // Создание новой карточки по ID
 const createCard = async (req: RequestCustom, res: Response, next: NextFunction) => {
-  // Извлечение данных новой карточки из тела запроса
-  const { name, link } = req.body;
-  const owner = req.user?._id;
-  // Проверка наличия всех необходимых данных
-  if (!name || !link || !owner) {
-    return next(Errors.badRequestError('Некорректные или неполные данные'));
-  }
   try {
+    // Извлечение данных новой карточки из тела запроса
+    const { name, link } = req.body;
+    const owner = req.user?._id;
     // Создание новой карточки
     const card = await Card.create({ name, link, owner });
-    return res.status(201).json({ data: card });
+    return res.status(HttpStatusCodes.CREATED).json({ data: card });
   } catch (error) {
-    console.error('Ошибка при создании карточки:', error);
-    return next(Errors.internalError('Произошла неожиданная ошибка!'));
+    // Обработка ошибок валидации Mongoose
+    if (error instanceof mongoose.Error.ValidationError) {
+      return next(ErrorCustom.BadRequest('Ошибка при создании карточки!'));
+    }
+    return next(error);
   }
 };
 
 //  Удаление карточки по ID
-const removeCard = async (req: Request, res: Response, next: NextFunction) => {
-  const { cardId } = req.params;
+const removeCard = async (req: RequestCustom, res: Response, next: NextFunction) => {
   try {
-    const card = await Card.findByIdAndRemove(cardId);
-    if (!card) {
-      return next(Errors.authorizationError('У вас нет таких полномочий'));
+    const { cardId } = req.params;
+    // Поиск карточки по ID и удаление
+    const cardToDelete = await Card.findById(cardId).orFail();
+    if (cardToDelete.owner.toString() !== req.user?._id) {
+      throw ErrorCustom.Unauthorized(
+        'У вас нет таких полномочий.',
+      );
     }
-    return res.status(204).json({ data: card });
+    // Удаление карточки
+    const deleteCard = await cardToDelete.deleteOne();
+    return res.status(HttpStatusCodes.NO_CONTENT).json({ data: deleteCard });
   } catch (error) {
-    console.error('Ошибка при удалении карточки:', error);
-    return next(Errors.internalError('Произошла неожиданная ошибка!'));
+    // Обработка ошибок Mongoose
+    if (error instanceof mongoose.Error.DocumentNotFoundError) {
+      return next(ErrorCustom.BadRequest('Карточка другого пользователя.'));
+    }
+    if (error instanceof mongoose.Error.CastError) {
+      return next(ErrorCustom.BadRequest('Карточка не найдена :('));
+    }
+    return next(error);
   }
 };
 
-export default { getCards, createCard, removeCard };
+// Добавление лайка
+const addLike = (req: RequestCustom, res: Response, next: NextFunction) => {
+  const handlePutLike = true;
+  cardLikeUpdateMiddleware(req, res, next, handlePutLike);
+};
+
+// Удаление лайка
+const removeLike = (req: RequestCustom, res: Response, next: NextFunction) => {
+  const handlePutLike = false;
+  cardLikeUpdateMiddleware(req, res, next, handlePutLike);
+};
+
+export default {
+  getCards,
+  createCard,
+  removeCard,
+  addLike,
+  removeLike,
+};

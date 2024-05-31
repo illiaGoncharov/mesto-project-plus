@@ -47,6 +47,7 @@
         "linebreak-style": "off",
         "no-trailing-spaces": "off",
         "eol-last": "off",
-        "no-console": 0
+        "no-console": 0,
+        "quotes": ["error", "single"]
     }
 }
