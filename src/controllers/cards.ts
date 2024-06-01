@@ -4,9 +4,9 @@ import {
   Response,
   NextFunction,
 } from 'express';
+import HttpStatusCodes from '../utils/constants';
 import { RequestCustom } from '../utils/requestCustom';
 import Card from '../models/card';
-import HttpStatusCodes from '../utils/constants';
 import cardLikeUpdateMiddleware from '../middlewares/cardLikeUpdateMiddleware';
 
 const ErrorCustom = require('../errors/errorHandlerCustom');

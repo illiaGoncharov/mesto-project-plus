@@ -5,6 +5,7 @@ import {
   Types,
 } from 'mongoose';
 import user from './user';
+import validation from '../validation/validators';
 
 // Определяем интерфейс ICard
 interface ICard extends Document {
@@ -26,6 +27,7 @@ const cardSchema = new Schema<ICard>({
   link: {
     type: String,
     required: true,
+    validate: validation.linkValidationUser,
   },
   owner: {
     type: Schema.Types.ObjectId, // Поле owner типа ObjectId (ссылка на пользователя)

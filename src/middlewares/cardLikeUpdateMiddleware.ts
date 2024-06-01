@@ -3,9 +3,9 @@ import {
   NextFunction,
   Response,
 } from 'express';
-import { RequestCustom } from '../utils/requestCustom';
 import HttpStatusCode from '../utils/constants';
 import Card from '../models/card';
+import { RequestCustom } from '../utils/requestCustom';
 
 const ErrorCustom = require('../errors/errorHandlerCustom');
 
