@@ -4,10 +4,13 @@ import {
   Response,
   NextFunction,
 } from 'express';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+import { JWT_SECRET } from '../config';
+import HttpStatusCodes from '../utils/constants';
 import { RequestCustom } from '../utils/requestCustom';
 import User from '../models/user';
 import userSearch from '../utils/userSearch';
-import HttpStatusCodes from '../utils/constants';
 import userUpdateMiddleware from '../middlewares/userUpdateMiddleware';
 
 // Импортируем модуль с кастомными ошибками
@@ -55,17 +58,38 @@ const getUserInfoById = async (req: RequestCustom, res: Response, next: NextFunc
 const createUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     // Извлечение данных нового пользователя из тела запроса
-    const { name, about, avatar } = req.body;
+    const {
+      name,
+      about,
+      avatar,
+      email,
+      password,
+    } = req.body;
+
+    // Хэширование пароля перед сохранением в БД
+    const hashPassword = await bcrypt.hash(password, 11);
+
     // Создание нового пользователя
-    const user = await User.create({ name, about, avatar });
+    const user = await User.create({
+      name,
+      about,
+      avatar,
+      email,
+      password: hashPassword,
+    });
+
     return res.status(HttpStatusCodes.CREATED).json({
       data: {
         name: user.name,
         about: user.about,
         avatar: user.avatar,
+        email: user.email,
       },
     });
   } catch (error: any) {
+    if (error.name === 'MongoError' && error.code === 11000) {
+      return next(ErrorCustom.Conflict('На этот email есть зарегестрированный аккаунт!'));
+    }
     if (error instanceof mongoose.Error.ValidationError) {
       return next(ErrorCustom.BadRequest('Ошибка в вводе данных пользователя!'));
     }
@@ -85,6 +109,20 @@ const updateUserAvatar = (req: RequestCustom, res: Response, next: NextFunction)
   userUpdateMiddleware(req, res, next, handleUpdateUser);
 };
 
+// Вход пользователя
+const loginUser = async (req: RequestCustom, res: Response, next: NextFunction) => {
+  try {
+    const { email, password } = req.body;
+    const user = await User.findUserByCredentials(email, password);
+    return res.send({
+      // Если пользователь найден, создаем JWT токен
+      token: jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' }),
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
 export default {
   getUsers,
   getUserById,
@@ -92,4 +130,5 @@ export default {
   createUser,
   updateUser,
   updateUserAvatar,
+  loginUser,
 };

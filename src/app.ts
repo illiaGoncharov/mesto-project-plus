@@ -2,15 +2,15 @@ import mongoose from 'mongoose';
 import express, {
   Application,
   json,
-  Response,
-  NextFunction,
 } from 'express';
 import { errors } from 'celebrate';
 import logger from './utils/logHandler';
 import errorHandler from './errors/errorHandler';
-import { PORT, MONGODB_URL } from './config';
+import { PORT, server, db } from './config';
 import router from './routes/index';
-import { RequestCustom } from './utils/requestCustom';
+import userControllers from './controllers/users';
+import authenticationMiddleware from './middlewares/authenticationMiddleware';
+import userValidation from './validation/userValidation';
 
 // Инициализируем экземпляр приложения Express
 const app: Application = express();
@@ -18,14 +18,16 @@ const app: Application = express();
 // Используем middleware для парсинга JSON в запросах
 app.use(json());
 
-// Мидлвар для установки пользователя в запросе
-app.use((req: RequestCustom, res: Response, next: NextFunction) => {
-  // Установка объекта пользователя
-  req.user = {
-    _id: '66561b288707fa8b7bc5ebb0',
-  };
-  next();
-});
+// Подключаем логгер
+app.use(logger.requestLogger);
+
+// Маршрут для входа
+app.use('/signin', userValidation.loginUserValidation, userControllers.loginUser);
+// Маршрут для регистрации
+app.use('/signup', userValidation.createUserValidation, userControllers.createUser);
+// Миддлвэр для аутентификации пользователя
+app.use(authenticationMiddleware);
+
 // Подключаем маршрутизатор к корневому пути приложения
 app.use('/', router);
 
@@ -37,7 +39,8 @@ app.use(errorHandler);
 // Асинхронная функция для подключения к MongoDB и запуска сервера
 const connect = async () => {
   try {
-    await mongoose.connect(MONGODB_URL);
+    mongoose.set('strictQuery', true);
+    await mongoose.connect(`mongodb://${server}/${db}`);
     console.log('MongoDB Подключен ✅');
     app.listen(PORT, () => {
       console.log(`App listening on port ${PORT}`);
